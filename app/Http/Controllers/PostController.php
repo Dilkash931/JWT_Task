@@ -10,12 +10,20 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    // Show posts
-    public function index()
-    {
-        $posts = Post::paginate(10); // Paginate results
-        return response()->json($posts);
-    }
+   // Show posts
+public function index()
+{
+    $posts = Post::paginate(10); // Paginate results
+
+    return response()->json([
+        'response' => [
+            'message' => 'Posts retrieved successfully',
+            'status' => 200,
+            'data' => $posts
+        ]
+    ], 200);
+}
+
 
  // Store posts
 public function store(StorePostRequest $request)
@@ -38,8 +46,11 @@ public function store(StorePostRequest $request)
     $post->save();
 
     return response()->json([
-        'message' => 'Post has been created successfully.',
-        'post' => $post
+        'response' => [
+            'message' => 'Post has been created successfully.',
+            'status' => 201,
+            'data' => $post
+        ]
     ], 201);
 }
 
@@ -48,62 +59,73 @@ public function store(StorePostRequest $request)
     public function show($id)
     {
         $post = Post::findOrFail($id);
+    
         return response()->json([
-            'message' => 'Post founded',
-            'post' => $post
-        ], 201);
+            'response' => [
+                'message' => 'Post found',
+                'status' => 200,
+                'data' => $post
+            ]
+        ], 200);
     }
+
+
+
 
     // Update the post
-    public function update(UpdatePostRequest $request, $id)
-    {
-        $post = Post::findOrFail($id);
-
-        // Handle the image upload
-        if ($request->hasFile('Image')) {
-            Storage::delete($post->Image);
-            // Store the new image file and update the image_path field
-            $imagePath = $request->file('Image')->store('upload/posts', 'public');
-            $post->Image = $imagePath;
-        }
-
-        // Update post fields
-        $post->Name = $request->input('Name', $post->Name);
-        $post->Description = $request->input('Description', $post->Description);
-        // $post->Status = $request->input('Status', $post->Status);
-        $post->Status = '1';
-        $post->save();
-
-        return response()->json([
-            'message' => 'Post updated successfully',
-            'post' => $post,
-            'status' => 200
-        ]);
-    }
-
-
-    
-  // Delete the post
-public function destroy($id, Request $request)
+public function update(UpdatePostRequest $request, $id)
 {
     $post = Post::findOrFail($id);
-    
-    // Ensure the file path matches your storage setup
-    $imagePath = public_path('storage/' . $post->Image);
 
-    if (File::exists($imagePath)) {
-        File::delete($imagePath);
+    // Handle the image upload
+    if ($request->hasFile('Image')) {
+        Storage::delete($post->Image);
+        // Store the new image file and update the image_path field
+        $imagePath = $request->file('Image')->store('upload/posts', 'public');
+        $post->Image = $imagePath;
     }
 
-    $post->delete();
+    // Update post fields
+    $post->Name = $request->input('Name', $post->Name);
+    $post->Description = $request->input('Description', $post->Description);
+    $post->Status = '1'; // Update status to '1'
+    $post->save();
 
     return response()->json([
-        'message' => 'Post deleted successfully',
-        'post' => $post,
-        'status' => 200
-    ]);
+        'response' => [
+            'message' => 'Post updated successfully',
+            'status' => 200,
+            'data' => $post
+        ]
+    ], 200);
 }
 
+    
+
+
+  // Delete the post
+  public function destroy($id, Request $request)
+  {
+      $post = Post::findOrFail($id);
+      
+      // Ensure the file path matches your storage setup
+      $imagePath = public_path('storage/' . $post->Image);
+  
+      if (File::exists($imagePath)) {
+          File::delete($imagePath);
+      }
+  
+      $post->delete();
+  
+      return response()->json([
+          'response' => [
+              'message' => 'Post deleted successfully',
+              'status' => 200,
+              'data' => $post
+          ]
+      ], 200);
+  }
+  
 }
 
 

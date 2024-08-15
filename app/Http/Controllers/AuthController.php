@@ -24,11 +24,11 @@ class AuthController extends Controller
             'Status' => $validatedData['Status']
         ]);
     
-        $token = auth('api')->login($user);
-        // return $this->respondWithToken($token);
         return response()->json([
-            'message' => 'You successfully registered.',
-            'token'=>$token
+            'response' => [
+                'message' => 'You successfully registered.',
+                'status' => 201
+            ]
         ], 201);
     }
     
@@ -38,33 +38,54 @@ class AuthController extends Controller
     public function login()
     {
         $credentials = request(['email', 'password']);
-
+    
         if (! $token = auth('api')->attempt($credentials)) {
-            return response()->json(['error' => 'Email or password is not correct.'], 401);
+            return response()->json([
+                'response' => [
+                    'message' => 'Email or password is not correct.',
+                    'status' => 401
+                ]
+            ], 401);
         }
-
+    
         return response()->json([
-            'message' => 'You successfully logged in.'
-        ], 201);
+            'response' => [
+                'message' => 'You successfully logged in.',
+                'status' => 200,
+                'token' => $token
+            ]
+        ], 200);
     }
-
+    
    
 
     //show user details
     public function me()
     {
-        return response()->json(auth()->user());
+        return response()->json([
+            'response' => [
+                'message' => 'User details retrieved successfully.',
+                'status' => 200,
+                'data' => auth()->user()
+            ]
+        ], 200);
     }
-
+    
    
 
     //logout function
     public function logout()
     {
         auth()->logout();
-
-        return response()->json(['message' => 'Successfully logged out']);
+    
+        return response()->json([
+            'response' => [
+                'message' => 'Successfully logged out.',
+                'status' => 200
+            ]
+        ], 200);
     }
+    
 
   
     // protected function respondWithToken($token)
@@ -72,6 +93,7 @@ class AuthController extends Controller
     //     return response()->json([
     //         'access_token' => $token,
     //         'token_type' => 'bearer',
+
     //         'expires_in' => auth('api')->factory()->getTTL() * 60
     //     ]);
     // }
